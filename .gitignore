@@ -1,0 +1,33 @@
+# Legacy / archive files
+*.zip
+*.sql
+application/
+assets/
+ems/
+
+# Laravel
+bims/vendor/
+bims/node_modules/
+bims/.env
+bims/.env.backup
+bims/storage/logs/*.log
+bims/storage/framework/cache/
+bims/storage/framework/sessions/
+bims/storage/framework/views/
+bims/storage/app/public/
+bims/public/hot
+bims/public/storage
+bims/public/build/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.suo
+*.user
+
+# Claude
+.claude/

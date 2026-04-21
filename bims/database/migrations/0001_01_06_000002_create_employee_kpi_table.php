@@ -1,0 +1,22 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::create('employee_kpi', function (Blueprint $table) {
+            $table->foreignId('employee_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('kpi_definition_id')->constrained('kpi_definitions')->cascadeOnDelete();
+            $table->primary(['employee_id', 'kpi_definition_id']);
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('employee_kpi');
+    }
+};
