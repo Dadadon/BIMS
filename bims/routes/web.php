@@ -16,8 +16,11 @@ use App\Http\Controllers\Admin\SaleController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\TaskController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\PhoneController;
 use App\Http\Controllers\Chat\ChatController;
 use App\Http\Controllers\ClockController;
+use App\Http\Controllers\Personal\PersonalPhoneController;
+use App\Http\Controllers\Phone\PhoneWebhookController;
 use App\Http\Controllers\Personal\PersonalAttendanceController;
 use App\Http\Controllers\Personal\PersonalDashboardController;
 use App\Http\Controllers\Personal\PersonalLeaveController;
@@ -44,6 +47,15 @@ Route::middleware('guest')->group(function () {
 
 Route::post('logout', [\App\Http\Controllers\Auth\AuthController::class, 'logout'])
     ->middleware('auth')->name('logout');
+
+/*
+|--------------------------------------------------------------------------
+| Phone Webhooks (public — no auth, signature-verified per provider)
+|--------------------------------------------------------------------------
+*/
+Route::post('phone/webhook/{phone}', [PhoneWebhookController::class, 'handle'])
+    ->name('phone.webhook')
+    ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
 
 /*
 |--------------------------------------------------------------------------
@@ -97,6 +109,12 @@ Route::middleware(['auth'])->prefix('my')->name('my.')->group(function () {
         Route::post('mark-all-read', [NotificationController::class, 'markAllRead'])->name('markAllRead');
         Route::post('{id}/read',     [NotificationController::class, 'markRead'])->name('markRead');
         Route::delete('{id}',        [NotificationController::class, 'destroy'])->name('destroy');
+    });
+
+    Route::middleware('module:phone')->group(function () {
+        Route::get('my-calls',              [PersonalPhoneController::class, 'index'])->name('phone.calls');
+        Route::post('phone/log-call',       [PhoneWebhookController::class, 'logCall'])->name('phone.log');
+        Route::get('phone/softphone-config',[PersonalPhoneController::class, 'softphoneConfig'])->name('phone.config');
     });
 });
 
@@ -217,6 +235,19 @@ Route::middleware(['auth', 'role:system_admin,manager,team_lead_l2,team_lead_l1'
         Route::put('{report}',           [ReportController::class, 'update'])->name('update');
         Route::delete('{report}',        [ReportController::class, 'destroy'])->name('destroy');
         Route::get('{report}/export',    [ReportController::class, 'export'])->name('export');
+    });
+
+    /*-- Phone --*/
+    Route::middleware('module:phone')->prefix('phone')->name('phone.')->group(function () {
+        Route::get('/',                         [PhoneController::class, 'index'])->name('index');
+        Route::get('create',                    [PhoneController::class, 'create'])->name('create');
+        Route::post('/',                        [PhoneController::class, 'store'])->name('store');
+        Route::get('{phone}/edit',              [PhoneController::class, 'edit'])->name('edit');
+        Route::put('{phone}',                   [PhoneController::class, 'update'])->name('update');
+        Route::delete('{phone}',                [PhoneController::class, 'destroy'])->name('destroy');
+        Route::post('{phone}/activate',         [PhoneController::class, 'activate'])->name('activate');
+        Route::post('{phone}/deactivate',       [PhoneController::class, 'deactivate'])->name('deactivate');
+        Route::get('call-logs',                 [PhoneController::class, 'callLogs'])->name('call-logs');
     });
 
     /*-- Notifications --*/

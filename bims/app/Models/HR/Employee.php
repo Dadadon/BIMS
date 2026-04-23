@@ -30,6 +30,7 @@ class Employee extends Model
         'birthday', 'birthplace', 'home_address', 'national_id',
         'employment_type', 'employment_status', 'start_date',
         'regularization_date', 'is_salaried', 'base_rate', 'avatar', 'metadata',
+        'sip_extension', 'sip_password',
     ];
 
     protected $casts = [

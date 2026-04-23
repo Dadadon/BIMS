@@ -234,6 +234,7 @@
     </main>
 </div>
 
+@include('layouts.partials.softphone-widget')
 @stack('scripts')
 </body>
 </html>

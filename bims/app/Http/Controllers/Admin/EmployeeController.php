@@ -96,6 +96,12 @@ class EmployeeController extends Controller
     {
         $data = $this->validateEmployee($request, $employee->id);
         $data['metadata'] = $this->extractMetadata($request, EmployeeFieldDefinition::active());
+
+        // Preserve existing SIP password if none submitted
+        if (empty($data['sip_password'])) {
+            unset($data['sip_password']);
+        }
+
         $employee->update($data);
 
         return redirect()->route('admin.employees.show', $employee)
@@ -172,6 +178,8 @@ class EmployeeController extends Controller
             'is_salaried'         => ['boolean'],
             'base_rate'           => ['required', 'numeric', 'min:0'],
             'avatar'              => ['nullable', 'image', 'max:2048'],
+            'sip_extension'       => ['nullable', 'string', 'max:20'],
+            'sip_password'        => ['nullable', 'string', 'max:100'],
         ]);
     }
 }

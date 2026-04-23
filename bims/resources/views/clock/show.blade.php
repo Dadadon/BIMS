@@ -145,6 +145,170 @@
         </div>
         @endmodule
 
+        {{-- SmartClock softphone panel --}}
+        @module('phone')
+        @if($employee->sip_extension)
+        <div class="rounded-lg bg-white shadow p-5" x-data="clockSoftphone()" x-init="boot()">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                    <svg class="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z"/>
+                    </svg>
+                    Softphone
+                </h3>
+                <div class="flex items-center gap-1.5">
+                    <span class="h-2 w-2 rounded-full"
+                          :class="{
+                              'bg-green-500': ['registered','connected'].includes(status),
+                              'bg-yellow-500 animate-pulse': ['registering','calling','ringing'].includes(status),
+                              'bg-red-400': ['failed','unregistered'].includes(status),
+                              'bg-gray-400': status === 'idle'
+                          }"></span>
+                    <span class="text-xs text-gray-500" x-text="statusLabel"></span>
+                </div>
+            </div>
+
+            {{-- CallHippo --}}
+            <div x-show="provider === 'callhippo'" class="text-xs text-blue-700 bg-blue-50 rounded-md p-2 leading-relaxed">
+                CallHippo active — use the CallHippo portal to make calls.
+            </div>
+
+            {{-- SIP Dialer --}}
+            <div x-show="provider === 'sip'" class="space-y-2">
+                <template x-if="!['calling','ringing','connected'].includes(status)">
+                    <div class="space-y-2">
+                        <input type="tel" x-model="number" placeholder="Number or extension"
+                               class="block w-full rounded-md border-0 py-1.5 px-3 text-sm text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600 font-mono"
+                               @keydown.enter="makeCall()">
+                        <div class="grid grid-cols-3 gap-1">
+                            <template x-for="k in ['1','2','3','4','5','6','7','8','9','*','0','#']" :key="k">
+                                <button @click="number += k"
+                                        class="h-8 rounded-md bg-gray-100 text-sm font-semibold text-gray-800 hover:bg-gray-200 active:scale-95 transition-all"
+                                        x-text="k"></button>
+                            </template>
+                        </div>
+                        <button @click="makeCall()" :disabled="!number"
+                                class="w-full rounded-md bg-green-600 py-2 text-sm font-semibold text-white hover:bg-green-500 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
+                            Call
+                        </button>
+                    </div>
+                </template>
+
+                <template x-if="['calling','ringing','connected'].includes(status)">
+                    <div class="space-y-3 text-center">
+                        <p class="font-mono text-gray-800 text-base font-semibold" x-text="number"></p>
+                        <p class="text-xs text-gray-500" x-text="statusLabel"></p>
+                        <p x-show="status === 'connected'" class="text-sm font-mono text-green-600 tabular-nums" x-text="formatDuration(duration)"></p>
+                        <div class="flex justify-center gap-3">
+                            <button x-show="status === 'connected'" @click="toggleMute()"
+                                    class="h-9 w-9 rounded-full flex items-center justify-center"
+                                    :class="muted ? 'bg-red-100 text-red-600' : 'bg-gray-100 text-gray-600'">
+                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                    <path x-show="!muted" stroke-linecap="round" stroke-linejoin="round" d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z"/>
+                                    <path x-show="muted" stroke-linecap="round" stroke-linejoin="round" d="M17.25 9.75L19.5 12m0 0l2.25 2.25M19.5 12l2.25-2.25M19.5 12l-2.25 2.25m-10.5-6l4.72-4.72a.75.75 0 011.28.531V19.94a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.506-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.395C2.806 8.757 3.63 8.25 4.51 8.25H6.75z"/>
+                                </svg>
+                            </button>
+                            <button @click="hangup()"
+                                    class="h-9 w-9 rounded-full bg-red-600 flex items-center justify-center text-white hover:bg-red-500">
+                                <svg class="h-4 w-4 rotate-[135deg]" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </template>
+
+                <div x-show="errorMsg" x-transition class="rounded-md bg-red-50 px-2 py-1.5 text-xs text-red-700" x-text="errorMsg"></div>
+            </div>
+        </div>
+
+        @push('scripts')
+        <script>
+        function clockSoftphone() {
+            return {
+                status: 'idle', provider: null, number: '', muted: false,
+                duration: 0, _timer: null, _callStart: null, simpleUser: null, config: null, errorMsg: '',
+                get statusLabel() {
+                    return { idle:'Not connected', registering:'Connecting…', registered:'Ready',
+                             calling:'Calling…', ringing:'Ringing…', connected:'In call',
+                             failed:'Failed', unregistered:'Disconnected' }[this.status] || this.status;
+                },
+                async boot() {
+                    try {
+                        const r = await fetch('{{ route('my.phone.config') }}', { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+                        const cfg = await r.json();
+                        if (!cfg.enabled) return;
+                        this.config = cfg; this.provider = cfg.provider;
+                        if (cfg.provider !== 'sip') return;
+                        await this._loadSipJs();
+                        await this._registerSip();
+                    } catch(e) { this.errorMsg = e.message; setTimeout(() => this.errorMsg = '', 5000); }
+                },
+                _loadSipJs() {
+                    return new Promise((resolve, reject) => {
+                        if (window.SIP) return resolve();
+                        const s = document.createElement('script');
+                        s.src = 'https://cdn.jsdelivr.net/npm/sip.js@0.21.2/lib/platform/web/simple-user.min.js';
+                        s.onload = resolve; s.onerror = () => reject(new Error('SIP.js load failed'));
+                        document.head.appendChild(s);
+                    });
+                },
+                async _registerSip() {
+                    const cfg = this.config, self = this;
+                    const iceServers = [];
+                    if (cfg.stun_server) iceServers.push({ urls: cfg.stun_server });
+                    if (cfg.turn_server) {
+                        const t = { urls: cfg.turn_server };
+                        if (cfg.turn_username) t.username = cfg.turn_username;
+                        if (cfg.turn_password) t.credential = cfg.turn_password;
+                        iceServers.push(t);
+                    }
+                    const ext = cfg.sip_uri?.split(':')[1]?.split('@')[0] || '';
+                    this.status = 'registering';
+                    this.simpleUser = new SIP.Web.SimpleUser(cfg.websocket_url, {
+                        aor: cfg.sip_uri,
+                        delegate: {
+                            onCallCreated:   () => { self.status = 'calling'; },
+                            onCallAnswered:  () => { self.status = 'connected'; self._startTimer(); },
+                            onCallHangup:    () => {
+                                self._stopTimer(); self._logCall('completed', self.duration > 3 ? 'answered' : 'no_answer');
+                                self.status = 'registered'; self.number = ''; self.muted = false;
+                            },
+                            onRegistered:       () => { self.status = 'registered'; },
+                            onServerDisconnect: () => { self.status = 'unregistered'; },
+                        },
+                        media: { constraints: { audio: true, video: false }, remote: { audio: document.getElementById('softphone-remote-audio') } },
+                        userAgentOptions: { authorizationPassword: cfg.password, authorizationUsername: ext, iceServers: iceServers.length ? iceServers : undefined },
+                    });
+                    await this.simpleUser.connect(); await this.simpleUser.register();
+                },
+                async makeCall() {
+                    if (!this.number || !this.simpleUser) return;
+                    const domain = this.config.sip_uri?.split('@')[1] || '';
+                    const target = this.number.includes('@') ? 'sip:' + this.number : 'sip:' + this.number + '@' + domain;
+                    try { this.status = 'calling'; await this.simpleUser.call(target, { sessionDescriptionHandlerOptions: { constraints: { audio: true, video: false } } });
+                    } catch(e) { this.status = 'registered'; this.errorMsg = e.message; setTimeout(() => this.errorMsg = '', 4000); }
+                },
+                async hangup() {
+                    try { if (this.simpleUser) await this.simpleUser.hangup(); } catch(_) {}
+                    this._stopTimer(); await this._logCall('completed', this.duration > 3 ? 'answered' : 'no_answer');
+                    this.status = 'registered'; this.number = ''; this.muted = false;
+                },
+                toggleMute() { if (!this.simpleUser) return; this.muted = !this.muted; this.muted ? this.simpleUser.mute() : this.simpleUser.unmute(); },
+                _startTimer() { this.duration = 0; this._callStart = Date.now(); this._timer = setInterval(() => { this.duration = Math.floor((Date.now() - this._callStart) / 1000); }, 1000); },
+                _stopTimer() { if (this._timer) { clearInterval(this._timer); this._timer = null; } },
+                formatDuration(s) { const m = Math.floor(s/60), sec = s%60; return String(m).padStart(2,'0')+':'+String(sec).padStart(2,'0'); },
+                async _logCall(status, disposition) {
+                    const ext = this.config?.sip_uri?.split(':')[1]?.split('@')[0] || '';
+                    try { await fetch('{{ route('my.phone.log') }}', { method:'POST', headers:{ 'Content-Type':'application/json','X-CSRF-TOKEN':document.querySelector('meta[name=csrf-token]').content,'X-Requested-With':'XMLHttpRequest' }, body: JSON.stringify({ direction:'outbound', caller_number:ext, callee_number:this.number, status, disposition, duration_seconds:this.duration }) }); } catch(_) {}
+                },
+            };
+        }
+        </script>
+        @endpush
+        @endif
+        @endmodule
+
     </div>
 
     {{-- Today's log --}}

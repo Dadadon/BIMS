@@ -230,6 +230,33 @@
     </div>
 </div>
 
+{{-- Section: Phone / SIP --}}
+@module('phone')
+<div class="bg-white shadow rounded-lg">
+    <div class="px-6 py-4 border-b border-gray-100">
+        <h3 class="text-sm font-semibold text-gray-900">Phone / Softphone</h3>
+    </div>
+    <div class="px-6 py-6 grid grid-cols-1 gap-x-6 gap-y-5 sm:grid-cols-6">
+        <div class="sm:col-span-2">
+            <label class="block text-sm font-medium text-gray-900">SIP Extension</label>
+            <input type="text" name="sip_extension"
+                   value="{{ old('sip_extension', $emp?->sip_extension) }}"
+                   placeholder="e.g. 1001"
+                   class="mt-2 block w-full rounded-md border-0 py-1.5 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600 sm:text-sm font-mono">
+            <p class="mt-1 text-xs text-gray-500">Leave blank if this employee does not use the softphone.</p>
+        </div>
+        <div class="sm:col-span-2">
+            <label class="block text-sm font-medium text-gray-900">
+                SIP Password
+                @if($emp?->exists) <span class="font-normal text-gray-400">(leave blank to keep)</span> @endif
+            </label>
+            <input type="password" name="sip_password" autocomplete="new-password"
+                   class="mt-2 block w-full rounded-md border-0 py-1.5 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600 sm:text-sm">
+        </div>
+    </div>
+</div>
+@endmodule
+
 {{-- Section: Additional Information (custom fields) --}}
 @if($customFields->isNotEmpty())
 <div class="bg-white shadow rounded-lg">
