@@ -48,7 +48,7 @@
             {{-- Cloud API fields (CallHippo) --}}
             <div class="sm:col-span-2" x-show="type === 'callhippo'" x-cloak>
                 <div class="rounded-md bg-blue-50 p-4 mb-4">
-                    <p class="text-xs text-blue-700 font-medium">CallHippo uses cloud API credentials. Set the webhook URL in your CallHippo dashboard to: <code class="bg-blue-100 px-1 rounded">{{ url('phone/webhook/') }}/<em>ID</em></code></p>
+                    <p class="text-xs text-blue-700 font-medium">Set the webhook URL in your CallHippo dashboard to: <code class="bg-blue-100 px-1 rounded">{{ url('phone/webhook/') }}/<em>ID</em>?secret=<em>your-webhook-secret</em></code>. Enable <strong>Calling Activity</strong> and optionally <strong>Call Status Notification</strong>. Employee matching is done automatically via the agent's email address.</p>
                 </div>
                 <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <div>
