@@ -10,7 +10,7 @@ class PhoneIntegration extends Model
 {
     protected $fillable = [
         'name', 'type', 'is_active',
-        'api_key', 'api_secret', 'webhook_secret', 'account_id',
+        'webhook_secret',
         'sip_domain', 'sip_port', 'sip_transport', 'websocket_url',
         'stun_server', 'turn_server', 'turn_username', 'turn_password',
         'notes',
@@ -21,7 +21,7 @@ class PhoneIntegration extends Model
         'sip_port'  => 'integer',
     ];
 
-    protected $hidden = ['api_secret', 'webhook_secret', 'turn_password', 'sip_password'];
+    protected $hidden = ['webhook_secret', 'turn_password', 'sip_password'];
 
     public function callLogs(): HasMany
     {
@@ -52,17 +52,10 @@ class PhoneIntegration extends Model
     public function getTypeLabel(): string
     {
         return match($this->type) {
-            'callhippo'  => 'CallHippo',
             'freepbx'    => 'FreePBX',
             'vicidial'   => 'VICIdial',
             'custom_sip' => 'Custom SIP',
             default      => $this->type,
         };
-    }
-
-    /** Returns true if this integration uses SIP.js (not a cloud SDK). */
-    public function usesSipJs(): bool
-    {
-        return in_array($this->type, ['freepbx', 'vicidial', 'custom_sip']);
     }
 }

@@ -168,13 +168,7 @@
                 </div>
             </div>
 
-            {{-- CallHippo --}}
-            <div x-show="provider === 'callhippo'" class="text-xs text-blue-700 bg-blue-50 rounded-md p-2 leading-relaxed">
-                CallHippo active — use the CallHippo portal to make calls.
-            </div>
-
-            {{-- SIP Dialer --}}
-            <div x-show="provider === 'sip'" class="space-y-2">
+            <div class="space-y-2">
                 <template x-if="!['calling','ringing','connected'].includes(status)">
                     <div class="space-y-2">
                         <input type="tel" x-model="number" placeholder="Number or extension"
@@ -238,8 +232,7 @@
                         const r = await fetch('{{ route('my.phone.config') }}', { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
                         const cfg = await r.json();
                         if (!cfg.enabled) return;
-                        this.config = cfg; this.provider = cfg.provider;
-                        if (cfg.provider !== 'sip') return;
+                        this.config = cfg;
                         await this._loadSipJs();
                         await this._registerSip();
                     } catch(e) { this.errorMsg = e.message; setTimeout(() => this.errorMsg = '', 5000); }

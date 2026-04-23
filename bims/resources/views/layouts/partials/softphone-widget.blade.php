@@ -69,15 +69,9 @@
 
         <div class="px-4 py-4 space-y-3">
 
-            {{-- CallHippo notice --}}
-            <div x-show="provider === 'callhippo'" class="rounded-md bg-blue-50 p-3 text-xs text-blue-700 leading-relaxed">
-                CallHippo is your active phone provider. Use the CallHippo web portal or browser extension to place and receive calls. Call history syncs automatically here.
-            </div>
-
             {{-- SIP Dialer --}}
-            <div x-show="provider === 'sip'" class="space-y-3">
+            <div class="space-y-3">
 
-                {{-- Idle/ready: show number input + keypad --}}
                 <template x-if="!['calling','ringing','connected'].includes(status)">
                     <div class="space-y-2">
                         <input type="tel" x-model="number"
@@ -179,8 +173,6 @@ function softphoneWidget() {
                 const cfg = await r.json();
                 if (!cfg.enabled) return;
                 this.config = cfg;
-                this.provider = cfg.provider;
-                if (cfg.provider !== 'sip') return;
                 await this._loadSipJs();
                 await this._registerSip();
             } catch (e) {

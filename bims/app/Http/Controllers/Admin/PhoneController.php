@@ -97,15 +97,12 @@ class PhoneController extends Controller
     {
         $rules = [
             'name'           => ['required', 'string', 'max:100'],
-            'type'           => ['required', 'in:callhippo,freepbx,vicidial,custom_sip'],
-            'api_key'        => ['nullable', 'string', 'max:255'],
-            'api_secret'     => ['nullable', 'string', 'max:255'],
+            'type'           => ['required', 'in:freepbx,vicidial,custom_sip'],
             'webhook_secret' => ['nullable', 'string', 'max:255'],
-            'account_id'     => ['nullable', 'string', 'max:100'],
-            'sip_domain'     => ['nullable', 'string', 'max:255'],
+            'sip_domain'     => ['required', 'string', 'max:255'],
             'sip_port'       => ['nullable', 'integer', 'min:1', 'max:65535'],
             'sip_transport'  => ['nullable', 'in:wss,ws,tcp,udp'],
-            'websocket_url'  => ['nullable', 'string', 'max:255'],
+            'websocket_url'  => ['required', 'string', 'max:255'],
             'stun_server'    => ['nullable', 'string', 'max:255'],
             'turn_server'    => ['nullable', 'string', 'max:255'],
             'turn_username'  => ['nullable', 'string', 'max:100'],
@@ -115,12 +112,12 @@ class PhoneController extends Controller
 
         $validated = $request->validate($rules);
 
-        // Keep existing secret if not provided on update
-        if ($existing && empty($validated['api_secret'])) {
-            unset($validated['api_secret']);
-        }
+        // Preserve secrets that are left blank on update
         if ($existing && empty($validated['webhook_secret'])) {
             unset($validated['webhook_secret']);
+        }
+        if ($existing && empty($validated['turn_password'])) {
+            unset($validated['turn_password']);
         }
 
         return $validated;
