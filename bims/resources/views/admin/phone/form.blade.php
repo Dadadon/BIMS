@@ -45,30 +45,29 @@
                        class="mt-2 block w-full rounded-md border-0 py-1.5 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600 sm:text-sm">
             </div>
 
-            {{-- Cloud API fields (CallHippo) --}}
+            {{-- CallHippo fields --}}
             <div class="sm:col-span-2" x-show="type === 'callhippo'" x-cloak>
-                <div class="rounded-md bg-blue-50 p-4 mb-4">
-                    <p class="text-xs text-blue-700 font-medium">Set the webhook URL in your CallHippo dashboard to: <code class="bg-blue-100 px-1 rounded">{{ url('phone/webhook/') }}/<em>ID</em>?secret=<em>your-webhook-secret</em></code>. Enable <strong>Calling Activity</strong> and optionally <strong>Call Status Notification</strong>. Employee matching is done automatically via the agent's email address.</p>
+                <div class="rounded-md bg-blue-50 p-4 mb-4 space-y-1">
+                    <p class="text-xs text-blue-800 font-semibold">Setup steps</p>
+                    <ol class="text-xs text-blue-700 list-decimal list-inside space-y-0.5">
+                        <li>In CallHippo → Integrations → REST API, generate your API token and paste it below.</li>
+                        <li>Go to the Webhook section, click Connect, and set the URL to:<br>
+                            <code class="bg-blue-100 px-1 py-0.5 rounded font-mono">{{ url('phone/webhook/') }}/<em>ID</em>?secret=<em>your-webhook-secret</em></code></li>
+                        <li>Enable <strong>Calling Activity</strong> (required). Optionally enable <strong>Call Status Notification</strong> for real-time status.</li>
+                        <li>Calls are matched to employees automatically using the agent's email address.</li>
+                    </ol>
                 </div>
                 <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <div>
-                        <label class="block text-sm font-medium text-gray-900">API Key</label>
+                        <label class="block text-sm font-medium text-gray-900">API Key <span class="text-red-500">*</span></label>
                         <input type="text" name="api_key" value="{{ old('api_key', $integration->api_key) }}"
-                               class="mt-2 block w-full rounded-md border-0 py-1.5 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600 sm:text-sm">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-900">API Secret {{ $integration->exists ? '(leave blank to keep)' : '' }}</label>
-                        <input type="password" name="api_secret" autocomplete="new-password"
-                               class="mt-2 block w-full rounded-md border-0 py-1.5 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600 sm:text-sm">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-900">Account ID</label>
-                        <input type="text" name="account_id" value="{{ old('account_id', $integration->account_id) }}"
-                               class="mt-2 block w-full rounded-md border-0 py-1.5 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600 sm:text-sm">
+                               placeholder="Your CallHippo API token"
+                               class="mt-2 block w-full rounded-md border-0 py-1.5 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600 sm:text-sm font-mono">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-900">Webhook Secret {{ $integration->exists ? '(leave blank to keep)' : '' }}</label>
                         <input type="password" name="webhook_secret" autocomplete="new-password"
+                               placeholder="Optional — appended as ?secret= in webhook URL"
                                class="mt-2 block w-full rounded-md border-0 py-1.5 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600 sm:text-sm">
                     </div>
                 </div>
