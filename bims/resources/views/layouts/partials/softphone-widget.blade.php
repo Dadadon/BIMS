@@ -4,7 +4,8 @@
 
 <audio id="softphone-remote-audio" autoplay></audio>
 
-<div id="softphone-widget" x-data="softphoneWidget()" x-init="boot()" class="fixed bottom-6 right-6 z-50">
+<div x-teleport="body">
+<div id="softphone-widget" x-data="softphoneWidget()" x-init="boot()" class="fixed bottom-6 right-6 z-[9999]">
 
     {{-- FAB toggle --}}
     <button x-show="!open" @click="open = true" title="Softphone"
@@ -222,6 +223,7 @@
         </div>
 
     </div>
+</div>
 </div>
 
 @push('scripts')
