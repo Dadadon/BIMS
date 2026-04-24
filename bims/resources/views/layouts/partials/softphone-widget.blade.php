@@ -4,7 +4,9 @@
 
 <audio id="softphone-remote-audio" autoplay></audio>
 
-<div id="softphone-widget" x-data="softphoneWidget" x-init="boot()" class="fixed bottom-6 right-6 z-[9999]">
+<div id="softphone-widget" x-data="softphoneWidget()" x-init="boot()"
+     class="fixed bottom-6 right-6 z-[9999]"
+     style="position:fixed!important;bottom:1.5rem;right:1.5rem;z-index:9999">
 
     {{-- FAB toggle --}}
     <button x-show="!open" @click="open = true" title="Softphone"
@@ -223,11 +225,17 @@
 
     </div>
 </div>
-
-@push('head')
 <script>
-document.addEventListener('alpine:init', () => {
-Alpine.data('softphoneWidget', () => ({
+(function(){
+    var w = document.getElementById('softphone-widget');
+    if (w && w.parentNode !== document.body) document.body.appendChild(w);
+})();
+</script>
+
+@push('scripts')
+<script>
+function softphoneWidget() {
+    return {
     open: false,
         tab: 'dialpad',
         status: 'idle',
@@ -445,8 +453,8 @@ Alpine.data('softphoneWidget', () => ({
                 });
             } catch (_) {}
         },
-}));
-});
+    };
+}
 </script>
 @endpush
 
