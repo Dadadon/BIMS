@@ -9,7 +9,7 @@
 </div>
 @else
 
-<div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+<div class="grid grid-cols-1 gap-6 lg:grid-cols-3 items-start">
 
     {{-- Left column: clock + actions --}}
     <div class="lg:col-span-1 space-y-4">
@@ -155,7 +155,7 @@
 
     {{-- Right column: Today's log --}}
     <div class="lg:col-span-2">
-        <div class="rounded-xl bg-white shadow-sm ring-1 ring-gray-200 overflow-hidden h-full">
+        <div class="rounded-xl bg-white shadow-sm ring-1 ring-gray-200 overflow-hidden">
             <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
                 <h3 class="text-sm font-semibold text-gray-900">Today's Log</h3>
                 <span class="text-xs text-gray-400">{{ now()->format('F j, Y') }}</span>

@@ -115,6 +115,7 @@ Route::middleware(['auth'])->prefix('my')->name('my.')->group(function () {
         Route::get('my-calls',              [PersonalPhoneController::class, 'index'])->name('phone.calls');
         Route::post('phone/log-call',       [PhoneWebhookController::class, 'logCall'])->name('phone.log');
         Route::get('phone/softphone-config',[PersonalPhoneController::class, 'softphoneConfig'])->name('phone.config');
+        Route::get('phone/contacts',        [PersonalPhoneController::class, 'contacts'])->name('phone.contacts');
     });
 });
 
