@@ -34,7 +34,6 @@
     @foreach($integrations as $integration)
     @php
         $typeColors = [
-            'callhippo'  => 'bg-blue-100 text-blue-700',
             'freepbx'    => 'bg-green-100 text-green-700',
             'vicidial'   => 'bg-orange-100 text-orange-700',
             'custom_sip' => 'bg-purple-100 text-purple-700',
@@ -56,9 +55,6 @@
                 <h3 class="mt-2 text-sm font-semibold text-gray-900">{{ $integration->name }}</h3>
                 @if($integration->sip_domain)
                 <p class="text-xs text-gray-500 mt-0.5">{{ $integration->sip_domain }}</p>
-                @endif
-                @if($integration->account_id)
-                <p class="text-xs text-gray-500 mt-0.5">Account: {{ $integration->account_id }}</p>
                 @endif
                 <p class="text-xs text-gray-400 mt-1">
                     Webhook: <code class="bg-gray-50 px-1 rounded text-[11px]">{{ route('phone.webhook', $integration) }}</code>

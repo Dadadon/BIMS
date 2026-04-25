@@ -55,16 +55,17 @@ class PhoneWebhookController extends Controller
 
         $employee = auth()->user()?->employee;
 
-        $log = \App\Models\Phone\CallLog::updateOrCreate(
-            array_filter([
-                'external_call_id'     => $validated['external_call_id'] ?? null,
-                'phone_integration_id' => $integration->id,
-            ], fn($v) => $v !== null),
-            array_merge($validated, [
-                'phone_integration_id' => $integration->id,
-                'employee_id'          => $employee?->id,
-            ])
-        );
+        $base = array_merge($validated, [
+            'phone_integration_id' => $integration->id,
+            'employee_id'          => $employee?->id,
+        ]);
+
+        $log = ! empty($validated['external_call_id'])
+            ? \App\Models\Phone\CallLog::updateOrCreate(
+                ['external_call_id' => $validated['external_call_id'], 'phone_integration_id' => $integration->id],
+                $base
+              )
+            : \App\Models\Phone\CallLog::create($base);
 
         // Auto-link to sale by phone number
         if (! $log->sale_id) {
