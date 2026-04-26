@@ -37,12 +37,14 @@ class PayrollController extends Controller
             'label'      => ['required', 'string', 'max:100'],
             'start_date' => ['required', 'date'],
             'end_date'   => ['required', 'date', 'after:start_date'],
+            'pay_date'   => ['nullable', 'date'],
         ]);
 
         PayPeriod::create([
             'label'      => $request->label,
             'start_date' => $request->start_date,
             'end_date'   => $request->end_date,
+            'pay_date'   => $request->pay_date ?: $request->end_date,
             'status'     => 'open',
         ]);
 

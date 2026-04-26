@@ -152,14 +152,19 @@
             <div class="grid grid-cols-2 gap-3">
                 <div>
                     <label class="block text-sm font-medium text-gray-900">Start Date <span class="text-red-500">*</span></label>
-                    <input type="date" name="start_date" required
+                    <input type="date" name="start_date" required id="pp-start"
                            class="mt-1 block w-full rounded-md border-0 py-1.5 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600 sm:text-sm">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-900">End Date <span class="text-red-500">*</span></label>
-                    <input type="date" name="end_date" required
+                    <input type="date" name="end_date" required id="pp-end"
                            class="mt-1 block w-full rounded-md border-0 py-1.5 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600 sm:text-sm">
                 </div>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-900">Pay Date <span class="text-gray-400 font-normal">(optional — defaults to end date)</span></label>
+                <input type="date" name="pay_date" id="pp-pay"
+                       class="mt-1 block w-full rounded-md border-0 py-1.5 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600 sm:text-sm">
             </div>
             <div class="flex justify-end gap-3 pt-1">
                 <button type="button" onclick="document.getElementById('new-period-modal').classList.add('hidden')"
