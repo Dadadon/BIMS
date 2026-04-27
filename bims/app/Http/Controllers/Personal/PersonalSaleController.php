@@ -18,15 +18,12 @@ class PersonalSaleController extends Controller
             ? Carbon::parse($request->input('month') . '-01')
             : Carbon::now()->startOfMonth();
 
-        $sales = collect();
-        if ($employee) {
-            $sales = Sale::where('employee_id', $employee->id)
-                ->with('saleType')
-                ->whereDate('sale_date', '>=', $month->copy()->startOfMonth())
-                ->whereDate('sale_date', '<=', $month->copy()->endOfMonth())
-                ->orderByDesc('sale_date')
-                ->paginate(20);
-        }
+        $sales = Sale::where('employee_id', $employee?->id ?? 0)
+            ->with('saleType')
+            ->whereDate('sale_date', '>=', $month->copy()->startOfMonth())
+            ->whereDate('sale_date', '<=', $month->copy()->endOfMonth())
+            ->orderByDesc('sale_date')
+            ->paginate(20);
 
         return view('personal.sales', compact('employee', 'sales', 'month'));
     }
