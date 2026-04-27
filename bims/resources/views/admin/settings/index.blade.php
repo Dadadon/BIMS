@@ -7,7 +7,7 @@
 
     {{-- General settings --}}
     <div class="lg:col-span-2">
-        <form method="POST" action="{{ route('admin.settings.update') }}" class="bg-white shadow rounded-lg">
+        <form method="POST" action="{{ route('admin.settings.update') }}" enctype="multipart/form-data" class="bg-white shadow rounded-lg">
             @csrf @method('PUT')
             <div class="px-6 py-4 border-b border-gray-100">
                 <h3 class="text-sm font-semibold text-gray-900">General Settings</h3>
@@ -18,6 +18,26 @@
                     <input type="text" name="company_name" required
                            value="{{ old('company_name', $settings->company_name) }}"
                            class="mt-2 block w-full rounded-md border-0 py-1.5 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600 sm:text-sm">
+                </div>
+
+                {{-- Logo upload --}}
+                <div class="sm:col-span-2">
+                    <label class="block text-sm font-medium text-gray-900">Company Logo</label>
+                    <p class="text-xs text-gray-500 mt-0.5">PNG, JPG, SVG or WebP · max 1 MB · displayed in the sidebar and login page</p>
+
+                    @if($settings->logo_path)
+                    <div class="mt-3 flex items-center gap-4">
+                        <img src="{{ asset('storage/' . $settings->logo_path) }}"
+                             alt="Current logo" class="max-h-12 w-auto object-contain rounded border border-gray-200 bg-gray-50 p-1">
+                        <label class="flex items-center gap-1.5 text-xs text-red-600 cursor-pointer">
+                            <input type="checkbox" name="remove_logo" value="1" class="rounded border-gray-300 text-red-600">
+                            Remove logo
+                        </label>
+                    </div>
+                    @endif
+
+                    <input type="file" name="logo" accept="image/*"
+                           class="mt-2 block w-full text-sm text-gray-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-900">Timezone <span class="text-red-500">*</span></label>
@@ -31,7 +51,7 @@
                 <div>
                     <label class="block text-sm font-medium text-gray-900">Currency</label>
                     <input type="text" name="currency"
-                           value="{{ old('currency', $settings->currency ?? 'PHP') }}"
+                           value="{{ old('currency', $settings->currency) }}"
                            class="mt-2 block w-full rounded-md border-0 py-1.5 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600 sm:text-sm">
                 </div>
                 <div>

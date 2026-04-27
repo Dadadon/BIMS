@@ -7,6 +7,7 @@ use App\Models\Module;
 use App\Models\Setting;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 class SettingsController extends Controller
@@ -29,9 +30,12 @@ class SettingsController extends Controller
             'overtime_threshold' => ['required', 'numeric', 'min:0'],
             'overtime_multiplier'=> ['required', 'numeric', 'min:1'],
             'allowed_ips'        => ['nullable', 'string'],
+            'logo'               => ['nullable', 'image', 'mimes:png,jpg,jpeg,svg,webp', 'max:1024'],
         ]);
 
-        Setting::current()->update([
+        $settings = Setting::current();
+
+        $data = [
             'company_name'    => $validated['company_name'],
             'timezone'        => $validated['timezone'],
             'date_format'     => $validated['date_format'],
@@ -41,7 +45,21 @@ class SettingsController extends Controller
                 'daily_threshold_hours' => $validated['overtime_threshold'],
                 'multiplier'            => $validated['overtime_multiplier'],
             ],
-        ]);
+        ];
+
+        if ($request->hasFile('logo')) {
+            if ($settings->logo_path) {
+                Storage::disk('public')->delete($settings->logo_path);
+            }
+            $data['logo_path'] = $request->file('logo')->store('logos', 'public');
+        }
+
+        if ($request->boolean('remove_logo') && $settings->logo_path) {
+            Storage::disk('public')->delete($settings->logo_path);
+            $data['logo_path'] = null;
+        }
+
+        $settings->update($data);
 
         return redirect()->route('admin.settings.index')
             ->with('success', 'Settings saved.');

@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -72,6 +73,37 @@ return new class extends Migration
         Schema::table('users', function (Blueprint $table) {
             $table->foreign('employee_id')->references('id')->on('employees')->nullOnDelete();
         });
+
+        // Base reference data — inserted here so it's available immediately after migration
+        $now = now();
+
+        DB::table('companies')->insertOrIgnore([
+            ['name' => 'My Company', 'commission_model' => 'sale_type_rate', 'commission_rate' => 0.00, 'is_primary' => true, 'created_at' => $now, 'updated_at' => $now],
+        ]);
+
+        DB::table('departments')->insertOrIgnore([
+            ['name' => 'Operations', 'created_at' => $now, 'updated_at' => $now],
+            ['name' => 'Sales',      'created_at' => $now, 'updated_at' => $now],
+            ['name' => 'Finance',    'created_at' => $now, 'updated_at' => $now],
+            ['name' => 'IT',         'created_at' => $now, 'updated_at' => $now],
+            ['name' => 'HR',         'created_at' => $now, 'updated_at' => $now],
+        ]);
+
+        DB::table('job_titles')->insertOrIgnore([
+            ['title' => 'Sales Agent',        'created_at' => $now, 'updated_at' => $now],
+            ['title' => 'Senior Sales Agent', 'created_at' => $now, 'updated_at' => $now],
+            ['title' => 'Team Leader',        'created_at' => $now, 'updated_at' => $now],
+            ['title' => 'Operations Manager', 'created_at' => $now, 'updated_at' => $now],
+            ['title' => 'HR Coordinator',     'created_at' => $now, 'updated_at' => $now],
+            ['title' => 'Finance Officer',    'created_at' => $now, 'updated_at' => $now],
+            ['title' => 'IT Specialist',      'created_at' => $now, 'updated_at' => $now],
+        ]);
+
+        DB::table('leave_groups')->insertOrIgnore([
+            ['name' => 'Standard (15 days)',    'annual_days' => 15.0, 'created_at' => $now, 'updated_at' => $now],
+            ['name' => 'Probationary (5 days)', 'annual_days' => 5.0,  'created_at' => $now, 'updated_at' => $now],
+            ['name' => 'Senior (20 days)',       'annual_days' => 20.0, 'created_at' => $now, 'updated_at' => $now],
+        ]);
     }
 
     public function down(): void

@@ -22,6 +22,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->web(append: [
             \App\Http\Middleware\SetAppTimezone::class,
+            \App\Http\Middleware\RequireAppSetup::class,
         ]);
     })
     ->withEvents(discover: [

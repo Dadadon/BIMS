@@ -41,24 +41,32 @@ class PayrollService
                 'status'        => 'draft',
             ]);
 
-            $employees = Employee::active()->get();
-            $taxes     = TaxConfiguration::active()->get();
+            $employees        = Employee::active()->get();
+            $taxes            = TaxConfiguration::active()->get();
+            $employerContribs = TaxConfiguration::where('is_employer_contribution', true)
+                                    ->where('is_active', true)
+                                    ->get();
             $settings  = Setting::current();
             $overtime  = $settings->overtime_config ?? [];
 
-            $totalGross = $totalDed = $totalNet = 0;
+            $totalGross = $totalDed = $totalNet = $totalEmployerContribs = 0;
 
             foreach ($employees as $employee) {
                 $slip = $this->computeSlip($run, $employee, $period, $taxes, $overtime);
                 $totalGross += $slip->gross_salary + $slip->commission_earned;
                 $totalDed   += $slip->total_deductions + $slip->total_tax;
                 $totalNet   += $slip->net_pay;
+
+                foreach ($employerContribs as $contrib) {
+                    $totalEmployerContribs += $contrib->calculate($slip->gross_salary);
+                }
             }
 
             $run->update([
-                'total_gross'      => $totalGross,
-                'total_deductions' => $totalDed,
-                'total_net'        => $totalNet,
+                'total_gross'                  => $totalGross,
+                'total_deductions'             => $totalDed,
+                'total_net'                    => $totalNet,
+                'total_employer_contributions' => round($totalEmployerContribs, 2),
             ]);
 
             return $run;
@@ -146,20 +154,22 @@ class PayrollService
             'commission_earned'   => round($commissionEarned, 2),
         ]);
 
-        // Apply taxes
+        // Apply taxes — contractors are not subject to withholding tax
         $totalTax = 0;
-        foreach ($taxes as $tax) {
-            $taxAmount = $tax->calculate($grossSalary);
-            if ($taxAmount > 0) {
-                PayrollLineItem::create([
-                    'payroll_slip_id' => $slip->id,
-                    'type'            => 'tax',
-                    'description'     => $tax->name,
-                    'amount'          => $taxAmount,
-                    'source'          => 'tax_config',
-                    'source_ref_id'   => $tax->id,
-                ]);
-                $totalTax += $taxAmount;
+        if ($employee->employment_type !== 'Contract') {
+            foreach ($taxes as $tax) {
+                $taxAmount = $tax->calculate($grossSalary);
+                if ($taxAmount > 0) {
+                    PayrollLineItem::create([
+                        'payroll_slip_id' => $slip->id,
+                        'type'            => 'tax',
+                        'description'     => $tax->name,
+                        'amount'          => $taxAmount,
+                        'source'          => 'tax_config',
+                        'source_ref_id'   => $tax->id,
+                    ]);
+                    $totalTax += $taxAmount;
+                }
             }
         }
 

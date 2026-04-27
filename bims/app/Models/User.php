@@ -43,6 +43,11 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function hasPermission(string $module, string $action): bool
     {
+        // Admins and super-admins bypass all permission checks
+        if ($this->isAdmin() || $this->isSuperAdmin()) {
+            return true;
+        }
+
         return $this->role?->can($module, $action) ?? false;
     }
 
@@ -59,5 +64,11 @@ class User extends Authenticatable implements MustVerifyEmail
     public function isSuperAdmin(): bool
     {
         return $this->role?->slug === 'system_admin';
+    }
+
+    /** The team_id this user is scoped to, or null if they see all. */
+    public function scopedTeamId(): ?int
+    {
+        return $this->employee?->team_id;
     }
 }

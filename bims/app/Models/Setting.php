@@ -10,9 +10,9 @@ class Setting extends Model
     protected $primaryKey = 'id';
 
     protected $fillable = [
-        'company_name', 'timezone', 'time_format', 'clock_comment',
-        'rfid_enabled', 'ip_whitelist', 'theme', 'logo_path',
-        'overtime_config', 'max_attachment_mb',
+        'company_name', 'timezone', 'currency', 'date_format', 'time_format',
+        'clock_comment', 'rfid_enabled', 'ip_whitelist', 'allowed_ips',
+        'theme', 'logo_path', 'overtime_config', 'max_attachment_mb',
     ];
 
     protected $casts = [

@@ -11,9 +11,14 @@ class SetAppTimezone
 {
     public function handle(Request $request, Closure $next): Response
     {
-        // Cache the setting to avoid a DB hit on every request
+        // Cache the setting to avoid a DB hit on every request.
+        // Gracefully fall back to UTC if the settings table doesn't exist yet (pre-setup).
         $timezone = cache()->remember('app.timezone', 3600, function () {
-            return Setting::value('timezone') ?? 'UTC';
+            try {
+                return Setting::value('timezone') ?? 'UTC';
+            } catch (\Exception) {
+                return 'UTC';
+            }
         });
 
         config(['app.timezone' => $timezone]);

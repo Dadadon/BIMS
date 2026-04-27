@@ -2,11 +2,20 @@
 
 namespace App\Models\HR;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Company extends Model
 {
+    use HasFactory;
+
+    protected static function newFactory(): \Database\Factories\CompanyFactory
+    {
+        return \Database\Factories\CompanyFactory::new();
+    }
+
+
     protected $fillable = ['name', 'commission_model', 'commission_rate', 'is_primary'];
 
     protected $casts = [

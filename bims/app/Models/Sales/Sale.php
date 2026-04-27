@@ -6,11 +6,19 @@ use App\Models\HR\Employee;
 use App\Models\HR\Team;
 use App\Models\Payroll\PayrollLineItem;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Sale extends Model
 {
+    use HasFactory;
+
+    protected static function newFactory(): \Database\Factories\SaleFactory
+    {
+        return \Database\Factories\SaleFactory::new();
+    }
+
     protected $fillable = [
         'employee_id', 'team_id', 'sale_type_id', 'sale_date',
         'customer_name', 'customer_phone',

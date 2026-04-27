@@ -14,6 +14,7 @@ use App\Models\User;
 use App\Notifications\SaleStatusChanged;
 use App\Services\Sales\CommissionCalculator;
 use App\Services\Sales\FormulaEvaluator;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -27,7 +28,7 @@ class SaleController extends Controller
 
     public function index(): View
     {
-        $sales = Sale::with(['employee', 'saleType'])
+        $sales = $this->scopeSales(Sale::with(['employee', 'saleType']))
             ->orderByDesc('sale_date')
             ->paginate(25);
 
@@ -41,7 +42,7 @@ class SaleController extends Controller
 
     public function filter(Request $request): View
     {
-        $query = Sale::with(['employee', 'saleType'])->orderByDesc('sale_date');
+        $query = $this->scopeSales(Sale::with(['employee', 'saleType']))->orderByDesc('sale_date');
 
         if ($emp = $request->input('employee_id')) {
             $query->where('employee_id', $emp);
@@ -61,16 +62,45 @@ class SaleController extends Controller
         if ($request->input('uncompensated')) {
             $query->where('compensation_received', false)->where('status', 'Approved');
         }
+        // Team filter: only honoured if user can already see that team
         if ($teamId = $request->input('team_id')) {
             $query->where('team_id', $teamId);
         }
 
+        $user      = auth()->user();
+        $teamId    = $user->scopedTeamId();
         $sales     = $query->paginate(25)->withQueryString();
-        $employees = Employee::active()->orderBy('lastname')->get();
+        $employees = $teamId
+            ? Employee::active()->where('team_id', $teamId)->orderBy('lastname')->get()
+            : Employee::active()->orderBy('lastname')->get();
         $saleTypes = SaleType::where('is_active', true)->orderBy('product_category')->get();
-        $teams     = Team::active()->orderBy('name')->get();
+        $teams     = $user->isAdmin() ? Team::active()->orderBy('name')->get() : collect();
 
         return view('admin.sales.filter', compact('sales', 'employees', 'saleTypes', 'teams'));
+    }
+
+    /**
+     * Applies the correct visibility scope based on the authenticated user's permissions:
+     *   - Admin or view_all → no filter
+     *   - view_team         → scoped to their team (or own if no team assigned)
+     *   - default           → own sales only
+     */
+    private function scopeSales(Builder $query): Builder
+    {
+        $user = auth()->user();
+
+        if ($user->isAdmin() || $user->hasPermission('sales', 'view_all')) {
+            return $query;
+        }
+
+        if ($user->hasPermission('sales', 'view_team')) {
+            $teamId = $user->scopedTeamId();
+            return $teamId
+                ? $query->where('team_id', $teamId)
+                : $query->where('employee_id', $user->employee_id);
+        }
+
+        return $query->where('employee_id', $user->employee_id);
     }
 
     public function create(): View
@@ -82,7 +112,7 @@ class SaleController extends Controller
         return view('admin.sales.create', [
             'employees'        => Employee::active()->orderBy('lastname')->get(),
             'saleTypes'        => SaleType::where('is_active', true)->orderBy('product_category')->get(),
-            'fieldsBySaleType' => $fields->groupBy(fn($f) => $f->sale_type_id ?? 'all'),
+            'fieldsBySaleType' => $fields->groupBy(fn($f) => $f->sale_type_id ?? 'all')->toBase(),
             'builtinKeys'      => FormulaEvaluator::builtinKeys(),
         ]);
     }

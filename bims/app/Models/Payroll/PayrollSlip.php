@@ -64,12 +64,12 @@ class PayrollSlip extends Model
             ->whereYear('pay_periods.end_date', $year)
             ->where('pay_periods.end_date', '<=', $periodEnd)
             ->select(DB::raw('
-                COALESCE(SUM(gross_salary), 0)       AS ytd_gross,
-                COALESCE(SUM(commission_earned), 0)  AS ytd_commission,
-                COALESCE(SUM(total_additions), 0)    AS ytd_additions,
-                COALESCE(SUM(total_deductions), 0)   AS ytd_deductions,
-                COALESCE(SUM(total_tax), 0)          AS ytd_tax,
-                COALESCE(SUM(net_pay), 0)            AS ytd_net
+                COALESCE(SUM(payroll_slips.gross_salary), 0)       AS ytd_gross,
+                COALESCE(SUM(payroll_slips.commission_earned), 0)  AS ytd_commission,
+                COALESCE(SUM(payroll_slips.total_additions), 0)    AS ytd_additions,
+                COALESCE(SUM(payroll_slips.total_deductions), 0)   AS ytd_deductions,
+                COALESCE(SUM(payroll_slips.total_tax), 0)          AS ytd_tax,
+                COALESCE(SUM(payroll_slips.net_pay), 0)            AS ytd_net
             '))
             ->first();
 

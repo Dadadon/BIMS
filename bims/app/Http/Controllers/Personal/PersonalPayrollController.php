@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Personal;
 
 use App\Http\Controllers\Controller;
 use App\Models\Payroll\PayrollSlip;
+use App\Models\Setting;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\View\View;
 
@@ -33,9 +34,10 @@ class PersonalPayrollController extends Controller
         }
 
         $slip->load(['employee.company', 'payrollRun.payPeriod', 'lineItems']);
+        $settings = Setting::current();
         $filename = 'payslip-' . $slip->payrollRun->payPeriod->label . '.pdf';
 
-        return Pdf::loadView('admin.payroll.slip-pdf', compact('slip'))
+        return Pdf::loadView('admin.payroll.slip-pdf', compact('slip', 'settings'))
             ->setPaper('a4', 'portrait')
             ->download($filename);
     }

@@ -23,6 +23,11 @@ class Employee extends Model
 {
     use HasFactory, SoftDeletes;
 
+    protected static function newFactory(): \Database\Factories\EmployeeFactory
+    {
+        return \Database\Factories\EmployeeFactory::new();
+    }
+
     protected $fillable = [
         'company_id', 'department_id', 'job_title_id', 'leave_group_id', 'team_id',
         'employee_code', 'firstname', 'lastname', 'middle_name',

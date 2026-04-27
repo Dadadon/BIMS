@@ -16,6 +16,7 @@ use App\Http\Controllers\Admin\SaleController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\TaskController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\PhoneController;
 use App\Http\Controllers\Chat\ChatController;
 use App\Http\Controllers\ClockController;
@@ -29,7 +30,16 @@ use App\Http\Controllers\Personal\PersonalPerformanceController;
 use App\Http\Controllers\Personal\PersonalSaleController;
 use App\Http\Controllers\Personal\PersonalScheduleController;
 use App\Http\Controllers\Personal\PersonalTaskController;
+use App\Http\Controllers\SetupController;
 use Illuminate\Support\Facades\Route;
+
+/*
+|--------------------------------------------------------------------------
+| First-run setup wizard (blocked by middleware once complete)
+|--------------------------------------------------------------------------
+*/
+Route::get('setup', [SetupController::class, 'index'])->name('setup.index');
+Route::post('setup', [SetupController::class, 'store'])->name('setup.store');
 
 /*
 |--------------------------------------------------------------------------
@@ -345,6 +355,16 @@ Route::middleware(['auth', 'role:system_admin,manager,team_lead_l2,team_lead_l1'
         Route::post('{task}/comments', [TaskController::class, 'comment'])->name('comment');
         Route::get('projects',         [TaskController::class, 'projects'])->name('projects');
         Route::post('projects',        [TaskController::class, 'storeProject'])->name('projects.store');
+    });
+
+    /*-- Roles & Permissions --*/
+    Route::prefix('roles')->name('roles.')->group(function () {
+        Route::get('/',                            [RoleController::class, 'index'])->name('index');
+        Route::post('/',                           [RoleController::class, 'store'])->name('store');
+        Route::get('{role}',                       [RoleController::class, 'show'])->name('show');
+        Route::put('{role}',                       [RoleController::class, 'update'])->name('update');
+        Route::put('{role}/permissions',           [RoleController::class, 'updatePermissions'])->name('permissions');
+        Route::delete('{role}',                    [RoleController::class, 'destroy'])->name('destroy');
     });
 
     /*-- Users --*/

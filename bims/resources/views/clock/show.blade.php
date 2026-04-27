@@ -110,11 +110,12 @@
                 </svg>
             </button>
             <div x-show="open" x-transition class="border-t border-gray-100 px-5 py-4">
-                <form method="POST" action="{{ route('clock.sale') }}" class="space-y-3">
+                <form method="POST" action="{{ route('clock.sale') }}" class="space-y-3"
+                      x-data="clockSaleForm()" x-init="init()">
                     @csrf
                     <div>
                         <label class="block text-xs font-medium text-gray-600 mb-1">Sale Type <span class="text-red-500">*</span></label>
-                        <select name="sale_type_id" required
+                        <select name="sale_type_id" required x-model="saleTypeId"
                                 class="block w-full rounded-lg border-0 py-2 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600 text-sm">
                             <option value="">— Select —</option>
                             @foreach($saleTypes as $st)
@@ -137,6 +138,49 @@
                         <input type="date" name="sale_date" required value="{{ now()->format('Y-m-d') }}"
                                class="block w-full rounded-lg border-0 py-2 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600 text-sm">
                     </div>
+
+                    {{-- Dynamic custom fields --}}
+                    <template x-for="field in visibleFields" :key="field.key">
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 mb-1">
+                                <span x-text="field.label"></span>
+                                <span x-show="field.is_required" class="text-red-500">*</span>
+                                <span x-show="field.field_type === 'calculated'" class="ml-1 text-xs font-normal text-purple-600">auto</span>
+                            </label>
+                            <template x-if="field.field_type === 'calculated'">
+                                <input type="text" readonly
+                                       :value="calcValues[field.key] !== undefined ? calcValues[field.key] : '—'"
+                                       class="block w-full rounded-lg border-0 py-2 px-3 bg-purple-50 text-purple-800 shadow-sm ring-1 ring-inset ring-purple-200 text-sm cursor-not-allowed">
+                            </template>
+                            <template x-if="field.field_type === 'select'">
+                                <select :name="'meta_' + field.key" :required="field.is_required"
+                                        @change="metaValues[field.key] = $event.target.value; recompute()"
+                                        class="block w-full rounded-lg border-0 py-2 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600 text-sm">
+                                    <option value="">— Select —</option>
+                                    <template x-for="opt in field.options" :key="opt">
+                                        <option :value="opt" x-text="opt"></option>
+                                    </template>
+                                </select>
+                            </template>
+                            <template x-if="field.field_type === 'textarea'">
+                                <textarea :name="'meta_' + field.key" :required="field.is_required" rows="2"
+                                          @input="metaValues[field.key] = $event.target.value; recompute()"
+                                          class="block w-full rounded-lg border-0 py-2 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600 text-sm"></textarea>
+                            </template>
+                            <template x-if="field.field_type === 'checkbox'">
+                                <input type="checkbox" :name="'meta_' + field.key" value="1"
+                                       @change="metaValues[field.key] = $event.target.checked; recompute()"
+                                       class="mt-1 h-4 w-4 rounded border-gray-300 text-indigo-600">
+                            </template>
+                            <template x-if="!['select','textarea','checkbox','calculated'].includes(field.field_type)">
+                                <input :type="field.field_type === 'number' ? 'number' : (field.field_type === 'date' ? 'date' : 'text')"
+                                       :name="'meta_' + field.key" :required="field.is_required"
+                                       @input="metaValues[field.key] = $event.target.value; recompute()"
+                                       class="block w-full rounded-lg border-0 py-2 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600 text-sm">
+                            </template>
+                        </div>
+                    </template>
+
                     <div>
                         <label class="block text-xs font-medium text-gray-600 mb-1">Remarks</label>
                         <input type="text" name="remarks"
@@ -245,6 +289,59 @@
     }
     updateClock();
     setInterval(updateClock, 1000);
+</script>
+<script>
+function clockSaleForm() {
+    const allFields = @json($saleFieldsAll);
+    const byType    = @json($saleFieldsByType->map->values());
+
+    return {
+        saleTypeId: '',
+        visibleFields: [],
+        metaValues: {},
+        calcValues: {},
+
+        init() {
+            this.$watch('saleTypeId', () => this.updateFields());
+            this.updateFields();
+        },
+
+        updateFields() {
+            const id = String(this.saleTypeId);
+            const typeFields = byType[id] ?? [];
+            this.visibleFields = [...allFields, ...typeFields];
+            this.metaValues = {};
+            this.calcValues = {};
+            this.recompute();
+        },
+
+        recompute() {
+            this.visibleFields.filter(f => f.field_type === 'calculated').forEach(field => {
+                if (!field.formula) return;
+                this.calcValues[field.key] = this.evalFormula(field.formula);
+            });
+        },
+
+        evalFormula(formula) {
+            const ctx = {};
+            Object.assign(ctx, this.metaValues);
+            let expr = formula;
+            Object.keys(ctx).sort((a, b) => b.length - a.length).forEach(k => {
+                const v = ctx[k];
+                const safe = (v === null || v === undefined || v === '') ? 0
+                           : (typeof v === 'boolean') ? (v ? 1 : 0)
+                           : isNaN(Number(v)) ? JSON.stringify(String(v))
+                           : Number(v);
+                expr = expr.replaceAll(k, safe);
+            });
+            try {
+                const result = Function('"use strict"; return (' + expr + ')')();
+                return (typeof result === 'number' && !isNaN(result))
+                    ? Math.round(result * 10000) / 10000 : result;
+            } catch { return '—'; }
+        },
+    };
+}
 </script>
 @endpush
 @endsection

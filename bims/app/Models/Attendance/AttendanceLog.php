@@ -6,11 +6,19 @@ use App\Models\HR\Employee;
 use App\Models\Payroll\PayrollRun;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class AttendanceLog extends Model
 {
+    use HasFactory;
+
+    protected static function newFactory(): \Database\Factories\AttendanceLogFactory
+    {
+        return \Database\Factories\AttendanceLogFactory::new();
+    }
+
     protected $fillable = [
         'employee_id', 'log_date', 'clock_in', 'clock_out',
         'total_minutes', 'reason', 'status_in', 'status_out',

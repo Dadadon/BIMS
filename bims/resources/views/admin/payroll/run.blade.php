@@ -32,19 +32,20 @@
 </div>
 
 {{-- Summary --}}
-<div class="grid grid-cols-1 gap-4 sm:grid-cols-4 mb-6">
+<div class="grid grid-cols-1 gap-4 sm:grid-cols-5 mb-6">
     @php
         $cards = [
-            ['label' => 'Period',         'value' => $run->payPeriod->label],
-            ['label' => 'Total Gross',    'value' => number_format($run->total_gross, 2)],
-            ['label' => 'Total Tax/Ded.', 'value' => number_format($run->total_deductions + $run->total_tax ?? 0, 2)],
-            ['label' => 'Total Net Pay',  'value' => number_format($run->total_net, 2)],
+            ['label' => 'Period',                  'value' => $run->payPeriod->label,                                        'color' => 'text-gray-900'],
+            ['label' => 'Total Gross',             'value' => number_format($run->total_gross, 2),                           'color' => 'text-gray-900'],
+            ['label' => 'Total Tax & Deductions',  'value' => number_format($run->total_deductions, 2),                      'color' => 'text-gray-900'],
+            ['label' => 'Employer Contributions',  'value' => number_format($run->total_employer_contributions, 2),          'color' => 'text-amber-700'],
+            ['label' => 'Total Net Pay',           'value' => number_format($run->total_net, 2),                             'color' => 'text-indigo-700'],
         ];
     @endphp
     @foreach($cards as $card)
     <div class="rounded-lg bg-white shadow px-5 py-4">
         <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">{{ $card['label'] }}</p>
-        <p class="mt-1 text-lg font-semibold text-gray-900">{{ $card['value'] }}</p>
+        <p class="mt-1 text-lg font-semibold {{ $card['color'] }}">{{ $card['value'] }}</p>
     </div>
     @endforeach
 </div>
@@ -80,7 +81,12 @@
             <tr class="hover:bg-gray-50">
                 <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm sm:pl-6">
                     <p class="font-medium text-gray-900">{{ $slip->employee->display_name }}</p>
-                    <p class="text-xs text-gray-500">{{ $slip->employee->employee_code }}</p>
+                    <p class="text-xs text-gray-500">
+                        {{ $slip->employee->employee_code }}
+                        @if($slip->employee->employment_type === 'Contract')
+                        <span class="ml-1 inline-flex rounded bg-amber-50 px-1.5 py-0.5 text-xs font-medium text-amber-700 ring-1 ring-inset ring-amber-600/20">Contractor</span>
+                        @endif
+                    </p>
                 </td>
                 <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-700 text-right">{{ number_format($slip->regular_hours, 2) }}</td>
                 <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-700 text-right">{{ number_format($slip->overtime_hours, 2) }}</td>

@@ -51,14 +51,14 @@
                         </td>
                         <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{{ $period->payroll_runs_count }}</td>
                         <td class="whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                            @php $draftRun = $period->payrollRuns->first(); @endphp
-                            @if($period->status === 'closed')
-                                <span class="text-gray-400">Closed</span>
-                            @elseif($draftRun)
-                                <a href="{{ route('admin.payroll.run.show', $draftRun) }}"
+                            @php $latestRun = $period->payrollRuns->first(); @endphp
+                            @if($latestRun)
+                                <a href="{{ route('admin.payroll.run.show', $latestRun) }}"
                                    class="text-indigo-600 hover:text-indigo-900 font-semibold">
-                                    View Draft
+                                    {{ $latestRun->status === 'draft' ? 'View Draft' : 'View Run' }}
                                 </a>
+                            @elseif($period->status === 'closed')
+                                <span class="text-gray-400">Closed</span>
                             @else
                             <form method="POST" action="{{ route('admin.payroll.run', $period) }}"
                                   onsubmit="return confirm('Run payroll for {{ $period->label }}?')">
@@ -86,10 +86,13 @@
             @forelse($taxes as $tax)
             <div class="px-4 py-3 flex justify-between items-center text-sm">
                 <div>
-                    <p class="font-medium text-gray-900">{{ $tax->name }}</p>
+                    <p class="font-medium text-gray-900">{{ $tax->name }}
+                        @if($tax->is_employer_contribution)
+                        <span class="ml-1 inline-flex rounded bg-amber-50 px-1.5 py-0.5 text-xs font-medium text-amber-700 ring-1 ring-inset ring-amber-600/20">Employer</span>
+                        @endif
+                    </p>
                     <p class="text-xs text-gray-500">
-                        {{ ucfirst(str_replace('_', ' ', $tax->type)) }}
-                        @if($tax->rate) · {{ $tax->rate }}% @endif
+                        @if($tax->rate > 0) {{ number_format($tax->rate * 100, 4) }}% @else Flat @endif
                     </p>
                 </div>
                 <form method="POST" action="{{ route('admin.payroll.tax.destroy', $tax) }}"
@@ -122,9 +125,12 @@
                     <input type="number" name="rate" step="0.01" placeholder="Rate %" min="0"
                            class="rounded-md border-0 py-1.5 px-3 text-sm text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600">
                 </div>
-                <div>
-                    <input type="text" name="description" placeholder="Description (optional)"
-                           class="block w-full rounded-md border-0 py-1.5 px-3 text-sm text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600">
+                <div class="flex items-center gap-2">
+                    <input type="checkbox" name="is_employer_contribution" id="is_employer_contribution" value="1"
+                           class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600">
+                    <label for="is_employer_contribution" class="text-sm text-gray-700">
+                        Employer contribution <span class="text-gray-400 text-xs">(not deducted from employee)</span>
+                    </label>
                 </div>
                 <button type="submit"
                         class="w-full rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500">

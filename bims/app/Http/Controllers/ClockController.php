@@ -4,9 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\Attendance\AttendanceLog;
 use App\Models\Sales\Sale;
+use App\Models\Sales\SaleFieldDefinition;
 use App\Models\Sales\SaleType;
 use App\Services\Attendance\AttendanceService;
 use App\Services\Sales\CommissionCalculator;
+use App\Services\Sales\FormulaEvaluator;
 use App\Events\SaleRecorded;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
@@ -16,8 +18,9 @@ use Illuminate\View\View;
 class ClockController extends Controller
 {
     public function __construct(
-        private AttendanceService   $attendance,
+        private AttendanceService    $attendance,
         private CommissionCalculator $commission,
+        private FormulaEvaluator     $formulaEvaluator,
     ) {}
 
     public function show(): View
@@ -40,7 +43,13 @@ class ClockController extends Controller
 
         $saleTypes = SaleType::where('is_active', true)->orderBy('product_category')->orderBy('portal')->get();
 
-        return view('clock.show', compact('employee', 'openLog', 'todayLogs', 'saleTypes'));
+        $fields = SaleFieldDefinition::where('is_active', true)
+            ->where('show_on_create', true)
+            ->orderBy('sort_order')->orderBy('label')->get();
+        $saleFieldsAll    = $fields->whereNull('sale_type_id')->values();
+        $saleFieldsByType = $fields->whereNotNull('sale_type_id')->groupBy('sale_type_id');
+
+        return view('clock.show', compact('employee', 'openLog', 'todayLogs', 'saleTypes', 'saleFieldsAll', 'saleFieldsByType'));
     }
 
     public function clockIn(Request $request): RedirectResponse
@@ -107,8 +116,28 @@ class ClockController extends Controller
             'sale_date'     => ['required', 'date'],
         ]);
 
-        $saleType  = SaleType::findOrFail($validated['sale_type_id']);
-        $points    = $this->commission->calculate($employee->id, $saleType->id);
+        $saleType = SaleType::findOrFail($validated['sale_type_id']);
+        $points   = $this->commission->calculate($employee->id, $saleType->id);
+
+        // Extract custom field metadata
+        $fields = SaleFieldDefinition::forSaleType($saleType->id);
+        $meta   = [];
+        foreach ($fields->where('field_type', '!=', 'calculated') as $field) {
+            $val = $request->input("meta_{$field->key}");
+            if ($val !== null && $val !== '') {
+                $meta[$field->key] = $field->field_type === 'checkbox' ? (bool) $val : $val;
+            }
+        }
+        $context = new Sale([
+            'employee_id'  => $employee->id,
+            'sale_type_id' => $saleType->id,
+            'sale_date'    => $validated['sale_date'],
+        ]);
+        foreach ($fields->where('field_type', 'calculated') as $field) {
+            if ($field->formula) {
+                $meta[$field->key] = $this->formulaEvaluator->evaluate($field->formula, $context, $meta);
+            }
+        }
 
         $sale = Sale::create([
             'employee_id'           => $employee->id,
@@ -120,6 +149,7 @@ class ClockController extends Controller
             'agent_points'          => $points['agent_points'],
             'status'                => 'Submitted',
             'compensation_received' => false,
+            'metadata'              => $meta ?: null,
         ]);
 
         event(new SaleRecorded($sale));

@@ -11,14 +11,16 @@ class PayrollRun extends Model
 {
     protected $fillable = [
         'pay_period_id', 'run_by', 'status',
-        'total_gross', 'total_deductions', 'total_net', 'notes', 'finalized_at',
+        'total_gross', 'total_deductions', 'total_net',
+        'total_employer_contributions', 'notes', 'finalized_at',
     ];
 
     protected $casts = [
-        'total_gross'      => 'decimal:2',
-        'total_deductions' => 'decimal:2',
-        'total_net'        => 'decimal:2',
-        'finalized_at'     => 'datetime',
+        'total_gross'                  => 'decimal:2',
+        'total_deductions'             => 'decimal:2',
+        'total_net'                    => 'decimal:2',
+        'total_employer_contributions' => 'decimal:2',
+        'finalized_at'                 => 'datetime',
     ];
 
     public function payPeriod(): BelongsTo

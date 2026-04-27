@@ -9,7 +9,7 @@
     <meta name="reverb-host"    content="{{ config('broadcasting.connections.reverb.options.host', '127.0.0.1') }}">
     <meta name="reverb-port"    content="{{ config('broadcasting.connections.reverb.options.port', 8080) }}">
     <meta name="reverb-scheme"  content="{{ config('broadcasting.connections.reverb.options.scheme', 'http') }}">
-    <title>@yield('title', 'BIMS') — Beroni Innovations</title>
+    <title>@yield('title', $settings?->company_name ?? 'Hub')</title>
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700&display=swap" rel="stylesheet">
     @vite(['resources/css/app.css', 'resources/js/app.js'])

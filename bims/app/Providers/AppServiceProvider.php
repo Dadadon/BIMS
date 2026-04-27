@@ -10,8 +10,10 @@ use App\Policies\EmployeePolicy;
 use App\Policies\PayrollPolicy;
 use App\Policies\SalePolicy;
 use App\Policies\TaskPolicy;
+use App\Models\Setting;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use App\Models\Module;
 
@@ -45,6 +47,16 @@ class AppServiceProvider extends ServiceProvider
         // @admin Blade directive
         Blade::if('admin', function () {
             return auth()->check() && auth()->user()->isAdmin();
+        });
+
+        // Share $settings with every view that uses the main layout
+        View::composer(['layouts.app', 'layouts.partials.sidebar-content', 'layouts.auth'], function ($view) {
+            try {
+                $view->with('settings', Setting::current());
+            } catch (\Exception) {
+                // Settings row may not exist during migrations/setup
+                $view->with('settings', null);
+            }
         });
     }
 }

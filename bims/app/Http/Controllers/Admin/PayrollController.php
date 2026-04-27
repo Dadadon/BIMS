@@ -7,6 +7,7 @@ use App\Models\Payroll\PayPeriod;
 use App\Models\Payroll\PayrollRun;
 use App\Models\Payroll\PayrollSlip;
 use App\Models\Payroll\TaxConfiguration;
+use App\Models\Setting;
 use App\Models\User;
 use App\Notifications\PayrollFinalized;
 use App\Services\Payroll\PayrollService;
@@ -24,10 +25,10 @@ class PayrollController extends Controller
 
     public function index(): View
     {
-        $periods  = PayPeriod::withCount('payrollRuns')
-            ->with(['payrollRuns' => fn($q) => $q->where('status', 'draft')->latest()->limit(1)])
+        $periods = PayPeriod::withCount('payrollRuns')
+            ->with(['payrollRuns' => fn($q) => $q->latest()->limit(1)])
             ->orderByDesc('start_date')->paginate(10);
-        $taxes    = TaxConfiguration::active()->orderBy('name')->get();
+        $taxes   = TaxConfiguration::where('is_active', true)->orderBy('name')->get();
         return view('admin.payroll.index', compact('periods', 'taxes'));
     }
 
@@ -93,14 +94,16 @@ class PayrollController extends Controller
     public function showSlip(PayrollSlip $slip): View
     {
         $slip->load(['employee', 'payrollRun.payPeriod', 'lineItems']);
-        return view('admin.payroll.slip', compact('slip'));
+        $settings = Setting::current();
+        return view('admin.payroll.slip', compact('slip', 'settings'));
     }
 
     public function downloadSlip(PayrollSlip $slip)
     {
         $slip->load(['employee.company', 'payrollRun.payPeriod', 'lineItems']);
+        $settings = Setting::current();
         $filename = 'payslip-' . $slip->employee->employee_code . '-' . $slip->payrollRun->payPeriod->label . '.pdf';
-        return Pdf::loadView('admin.payroll.slip-pdf', compact('slip'))
+        return Pdf::loadView('admin.payroll.slip-pdf', compact('slip', 'settings'))
             ->setPaper('a4', 'portrait')
             ->download($filename);
     }
@@ -155,13 +158,19 @@ class PayrollController extends Controller
     public function storeTax(Request $request): RedirectResponse
     {
         $request->validate([
-            'name'        => ['required', 'string', 'max:100'],
-            'type'        => ['required', 'in:percentage,fixed_bracket'],
-            'rate'        => ['nullable', 'numeric', 'min:0'],
-            'description' => ['nullable', 'string', 'max:255'],
+            'name' => ['required', 'string', 'max:100'],
+            'type' => ['required', 'in:percentage,fixed_bracket'],
+            'rate' => ['nullable', 'numeric', 'min:0'],
         ]);
 
-        TaxConfiguration::create($request->only('name', 'type', 'rate', 'description') + ['is_active' => true]);
+        TaxConfiguration::create([
+            'name'                    => $request->input('name'),
+            'code'                    => \Illuminate\Support\Str::upper(\Illuminate\Support\Str::slug($request->input('name'), '_')),
+            'rate'                    => $request->input('rate') ? ($request->input('rate') / 100) : 0,
+            'applies_to'              => 'gross',
+            'is_employer_contribution' => $request->boolean('is_employer_contribution'),
+            'is_active'               => true,
+        ]);
 
         return redirect()->route('admin.payroll.index')->with('success', 'Tax configuration added.');
     }
