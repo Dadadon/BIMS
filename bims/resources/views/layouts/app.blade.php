@@ -4,11 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    {{-- Reverb / Echo config --}}
+    {{-- Reverb / Echo config — only injected when broadcasting driver is reverb --}}
+    @if(config('broadcasting.default') === 'reverb' && config('broadcasting.connections.reverb.key'))
     <meta name="reverb-app-key" content="{{ config('broadcasting.connections.reverb.key') }}">
     <meta name="reverb-host"    content="{{ config('broadcasting.connections.reverb.options.host', '127.0.0.1') }}">
     <meta name="reverb-port"    content="{{ config('broadcasting.connections.reverb.options.port', 8080) }}">
     <meta name="reverb-scheme"  content="{{ config('broadcasting.connections.reverb.options.scheme', 'http') }}">
+    @endif
     <title>@yield('title', $settings?->company_name ?? 'Hub')</title>
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700&display=swap" rel="stylesheet">
