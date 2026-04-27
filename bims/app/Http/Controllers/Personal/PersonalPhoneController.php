@@ -16,14 +16,11 @@ class PersonalPhoneController extends Controller
     public function index(): View
     {
         $employee = auth()->user()->employee;
-        $logs     = collect();
 
-        if ($employee) {
-            $logs = CallLog::with(['sale', 'integration'])
-                ->where('employee_id', $employee->id)
-                ->latest()
-                ->paginate(30);
-        }
+        $logs = CallLog::with(['sale', 'integration'])
+            ->where('employee_id', $employee?->id ?? 0)
+            ->latest()
+            ->paginate(30);
 
         return view('personal.phone', compact('employee', 'logs'));
     }

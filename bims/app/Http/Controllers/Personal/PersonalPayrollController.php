@@ -13,14 +13,11 @@ class PersonalPayrollController extends Controller
     public function index(): View
     {
         $employee = auth()->user()->employee;
-        $slips    = collect();
 
-        if ($employee) {
-            $slips = PayrollSlip::where('employee_id', $employee->id)
-                ->with('payrollRun.payPeriod')
-                ->orderByDesc('created_at')
-                ->paginate(12);
-        }
+        $slips = PayrollSlip::where('employee_id', $employee?->id ?? 0)
+            ->with('payrollRun.payPeriod')
+            ->orderByDesc('created_at')
+            ->paginate(12);
 
         return view('personal.payroll', compact('employee', 'slips'));
     }

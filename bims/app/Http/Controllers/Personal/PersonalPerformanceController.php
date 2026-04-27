@@ -12,14 +12,11 @@ class PersonalPerformanceController extends Controller
     public function index(): View
     {
         $employee  = auth()->user()->employee;
-        $snapshots = collect();
 
-        if ($employee) {
-            $snapshots = KpiSnapshot::where('employee_id', $employee->id)
-                ->with('kpi')
-                ->orderByDesc('period_start')
-                ->paginate(20);
-        }
+        $snapshots = KpiSnapshot::where('employee_id', $employee?->id ?? 0)
+            ->with('kpi')
+            ->orderByDesc('period_start')
+            ->paginate(20);
 
         return view('personal.performance', compact('employee', 'snapshots'));
     }

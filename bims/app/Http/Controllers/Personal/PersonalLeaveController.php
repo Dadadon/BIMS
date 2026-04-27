@@ -15,15 +15,15 @@ class PersonalLeaveController extends Controller
     public function index(): View
     {
         $employee   = auth()->user()->employee;
-        $requests   = collect();
         $leaveTypes = collect();
         $balances   = collect();
 
+        $requests = LeaveRequest::where('employee_id', $employee?->id ?? 0)
+            ->with('leaveType')
+            ->orderByDesc('created_at')
+            ->paginate(15);
+
         if ($employee) {
-            $requests = LeaveRequest::where('employee_id', $employee->id)
-                ->with('leaveType')
-                ->orderByDesc('created_at')
-                ->paginate(15);
 
             // Load leave types for this employee's leave group
             $groupId    = $employee->leave_group_id;
