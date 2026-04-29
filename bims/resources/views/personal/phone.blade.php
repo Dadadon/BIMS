@@ -91,7 +91,7 @@
         </tbody>
     </table>
 </div>
-<div class="mt-4">{{ $logs->links() }}</div>
+@if(method_exists($logs, 'links'))<div class="mt-4">{{ $logs->links() }}</div>@endif
 @endif
 
 @endif

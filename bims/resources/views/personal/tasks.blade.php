@@ -26,7 +26,7 @@
                     <p class="text-xs text-gray-500 truncate max-w-xs">{{ $task->description }}</p>
                     @endif
                 </td>
-                <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 hidden sm:table-cell">{{ $task->project->name ?? '—' }}</td>
+                <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 hidden sm:table-cell">{{ $task->project?->name ?? '—' }}</td>
                 <td class="whitespace-nowrap px-3 py-4 text-sm">
                     @php
                         $pc = ['Low'=>'text-gray-500','Medium'=>'text-blue-600','High'=>'text-orange-600','Urgent'=>'text-red-600'][$task->priority] ?? '';
@@ -60,5 +60,5 @@
         </tbody>
     </table>
 </div>
-<div class="mt-4">{{ $tasks->links() }}</div>
+@if(method_exists($tasks, 'links'))<div class="mt-4">{{ $tasks->links() }}</div>@endif
 @endsection

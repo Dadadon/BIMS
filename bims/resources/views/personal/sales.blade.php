@@ -31,7 +31,7 @@
                     <p class="font-medium text-gray-900">{{ $sale->customer_name }}</p>
                     <p class="text-xs text-gray-500">{{ $sale->customer_phone }}</p>
                 </td>
-                <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-700">{{ $sale->saleType->name ?? '—' }}</td>
+                <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-700">{{ $sale->saleType?->name ?? '—' }}</td>
                 <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-700">{{ \Carbon\Carbon::parse($sale->sale_date)->format('M j, Y') }}</td>
                 <td class="whitespace-nowrap px-3 py-4 text-sm font-semibold text-gray-900 text-right">{{ number_format($sale->agent_points, 2) }}</td>
                 <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-700">{{ $sale->status }}</td>
@@ -49,5 +49,5 @@
         </tbody>
     </table>
 </div>
-<div class="mt-4">{{ $sales->links() }}</div>
+@if(method_exists($sales, 'links'))<div class="mt-4">{{ $sales->links() }}</div>@endif
 @endsection

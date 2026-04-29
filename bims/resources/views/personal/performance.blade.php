@@ -19,8 +19,8 @@
             @forelse($snapshots as $snap)
             <tr class="hover:bg-gray-50">
                 <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm sm:pl-6">
-                    <p class="font-medium text-gray-900">{{ $snap->kpi->name ?? '—' }}</p>
-                    <p class="text-xs text-gray-500">{{ $snap->kpi->module_key ?? '' }}</p>
+                    <p class="font-medium text-gray-900">{{ $snap->kpi?->name ?? '—' }}</p>
+                    <p class="text-xs text-gray-500">{{ $snap->kpi?->module_key ?? '' }}</p>
                 </td>
                 <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-700">
                     {{ \Carbon\Carbon::parse($snap->period_start)->format('M Y') }}
@@ -41,5 +41,5 @@
         </tbody>
     </table>
 </div>
-<div class="mt-4">{{ $snapshots->links() }}</div>
+@if(method_exists($snapshots, 'links'))<div class="mt-4">{{ $snapshots->links() }}</div>@endif
 @endsection

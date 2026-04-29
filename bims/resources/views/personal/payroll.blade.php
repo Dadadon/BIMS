@@ -20,7 +20,7 @@
             @forelse($slips as $slip)
             <tr class="hover:bg-gray-50">
                 <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
-                    {{ $slip->payrollRun->payPeriod->label ?? '—' }}
+                    {{ $slip->payrollRun?->payPeriod?->label ?? '—' }}
                 </td>
                 <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-700 text-right">{{ number_format($slip->gross_salary + $slip->commission_earned, 2) }}</td>
                 <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-700 text-right">{{ number_format($slip->total_tax, 2) }}</td>
@@ -35,5 +35,5 @@
         </tbody>
     </table>
 </div>
-<div class="mt-4">{{ $slips->links() }}</div>
+@if(method_exists($slips, 'links'))<div class="mt-4">{{ $slips->links() }}</div>@endif
 @endsection
