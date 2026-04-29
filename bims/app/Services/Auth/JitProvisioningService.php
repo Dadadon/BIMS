@@ -25,12 +25,20 @@ class JitProvisioningService
                 abort(403, 'Your account has been disabled. Contact your administrator.');
             }
 
-            // Keep provider link and display name in sync
-            $user->fill([
+            $sync = [
                 'provider'    => $attrs['provider'],
                 'provider_id' => $attrs['provider_id'],
                 'name'        => $attrs['name'],
-            ])->save();
+            ];
+
+            // Re-sync role from directory groups on every login when groups are present
+            if (! empty($attrs['groups'])) {
+                $role = $this->mapGroupsToRole($attrs['groups']);
+                $sync['role_id']  = $role->id;
+                $sync['acc_type'] = $role->is_admin ? 'admin' : 'employee';
+            }
+
+            $user->fill($sync)->save();
 
             return $user;
         }
