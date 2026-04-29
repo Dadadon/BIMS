@@ -12,6 +12,7 @@ use App\Policies\SalePolicy;
 use App\Policies\TaskPolicy;
 use App\Models\Setting;
 use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
@@ -19,7 +20,15 @@ use App\Models\Module;
 
 class AppServiceProvider extends ServiceProvider
 {
-    public function register(): void {}
+    public function register(): void
+    {
+        // Register the Azure Socialite driver if the package is installed
+        if (class_exists(\SocialiteProviders\Manager\SocialiteWasCalled::class)) {
+            Event::listen(function (\SocialiteProviders\Manager\SocialiteWasCalled $event) {
+                $event->extendSocialite('azure', \SocialiteProviders\Azure\Provider::class);
+            });
+        }
+    }
 
     public function boot(): void
     {

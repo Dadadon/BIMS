@@ -53,6 +53,10 @@ Route::middleware('guest')->group(function () {
     Route::post('forgot-password', [\App\Http\Controllers\Auth\AuthController::class, 'sendReset'])->name('password.email');
     Route::get('reset-password/{token}', [\App\Http\Controllers\Auth\AuthController::class, 'showReset'])->name('password.reset');
     Route::post('reset-password', [\App\Http\Controllers\Auth\AuthController::class, 'resetPassword'])->name('password.update');
+
+    // Microsoft Entra ID / OIDC SSO
+    Route::get('auth/oidc/redirect', [\App\Http\Controllers\Auth\OidcController::class, 'redirect'])->name('auth.oidc.redirect');
+    Route::get('auth/oidc/callback', [\App\Http\Controllers\Auth\OidcController::class, 'callback'])->name('auth.oidc.callback');
 });
 
 Route::post('logout', [\App\Http\Controllers\Auth\AuthController::class, 'logout'])
@@ -382,6 +386,7 @@ Route::middleware(['auth', 'role:system_admin,manager,team_lead_l2,team_lead_l1'
     Route::prefix('settings')->name('settings.')->group(function () {
         Route::get('/',            [SettingsController::class, 'index'])->name('index');
         Route::put('/',            [SettingsController::class, 'update'])->name('update');
+        Route::put('auth',         [SettingsController::class, 'updateAuth'])->name('auth');
         Route::post('modules/{module}/toggle', [SettingsController::class, 'toggleModule'])->name('modules.toggle');
     });
 });

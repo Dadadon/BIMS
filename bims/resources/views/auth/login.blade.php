@@ -54,4 +54,31 @@
         </button>
     </div>
 </form>
+
+@if(config('services.azure.client_id'))
+<div class="mt-6">
+    <div class="relative">
+        <div class="absolute inset-0 flex items-center" aria-hidden="true">
+            <div class="w-full border-t border-gray-200"></div>
+        </div>
+        <div class="relative flex justify-center text-sm font-medium leading-6">
+            <span class="bg-white px-6 text-gray-900">Or continue with</span>
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <a href="{{ route('auth.oidc.redirect') }}"
+           class="flex w-full items-center justify-center gap-3 rounded-md bg-white px-3 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-1">
+            {{-- Microsoft logo --}}
+            <svg class="h-5 w-5" viewBox="0 0 21 21" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <rect x="1"  y="1"  width="9" height="9" fill="#F25022"/>
+                <rect x="11" y="1"  width="9" height="9" fill="#7FBA00"/>
+                <rect x="1"  y="11" width="9" height="9" fill="#00A4EF"/>
+                <rect x="11" y="11" width="9" height="9" fill="#FFB900"/>
+            </svg>
+            Sign in with Microsoft
+        </a>
+    </div>
+</div>
+@endif
 @endsection

@@ -13,12 +13,14 @@ class Setting extends Model
         'company_name', 'timezone', 'currency', 'date_format', 'time_format',
         'clock_comment', 'rfid_enabled', 'ip_whitelist', 'allowed_ips',
         'theme', 'logo_path', 'overtime_config', 'max_attachment_mb',
+        'external_auth_domains',
     ];
 
     protected $casts = [
-        'clock_comment'   => 'boolean',
-        'rfid_enabled'    => 'boolean',
-        'overtime_config' => 'array',
+        'clock_comment'        => 'boolean',
+        'rfid_enabled'         => 'boolean',
+        'overtime_config'      => 'array',
+        'external_auth_domains' => 'array',
     ];
 
     /** Always work with the single row. */

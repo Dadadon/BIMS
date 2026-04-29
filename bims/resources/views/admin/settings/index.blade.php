@@ -114,5 +114,36 @@
             @endforeach
         </ul>
     </div>
+
+    {{-- External Authentication (full width) --}}
+    <div class="lg:col-span-3">
+        <form method="POST" action="{{ route('admin.settings.auth') }}" class="bg-white shadow rounded-lg">
+            @csrf @method('PUT')
+            <div class="px-6 py-4 border-b border-gray-100">
+                <h3 class="text-sm font-semibold text-gray-900">External Authentication</h3>
+                <p class="text-xs text-gray-500 mt-0.5">Map email domains to an authentication provider. Requires OIDC or LDAP variables to be set in <code>.env</code>.</p>
+            </div>
+            <div class="px-6 py-6">
+                <label class="block text-sm font-medium text-gray-900 mb-1">Domain → Provider Map (JSON)</label>
+                <p class="text-xs text-gray-500 mb-2">
+                    Keys are email domains, values are <code>oidc</code> (Entra ID / Microsoft SSO) or <code>ldap</code> (Samba / Active Directory).
+                    Example: <code>{"company.com":"oidc","corp.local":"ldap"}</code>
+                    — Leave blank to use local authentication only.
+                </p>
+                <textarea name="external_auth_domains" rows="4"
+                          class="block w-full rounded-md border-0 py-1.5 px-3 font-mono text-sm text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600"
+                          placeholder='{"yourdomain.com":"oidc"}'>{{ old('external_auth_domains', $settings->external_auth_domains ? json_encode($settings->external_auth_domains, JSON_PRETTY_PRINT) : '') }}</textarea>
+                @error('external_auth_domains')
+                <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+                @enderror
+            </div>
+            <div class="px-6 py-4 bg-gray-50 rounded-b-lg flex justify-end">
+                <button type="submit"
+                        class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500">
+                    Save Auth Settings
+                </button>
+            </div>
+        </form>
+    </div>
 </div>
 @endsection

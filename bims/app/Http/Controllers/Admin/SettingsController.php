@@ -65,6 +65,40 @@ class SettingsController extends Controller
             ->with('success', 'Settings saved.');
     }
 
+    public function updateAuth(Request $request): RedirectResponse
+    {
+        $raw = trim($request->input('external_auth_domains', ''));
+
+        if ($raw === '' || $raw === '{}') {
+            Setting::current()->update(['external_auth_domains' => null]);
+
+            return redirect()->route('admin.settings.index')
+                ->with('success', 'Authentication settings saved.');
+        }
+
+        $decoded = json_decode($raw, true);
+
+        if (! is_array($decoded)) {
+            return back()
+                ->withErrors(['external_auth_domains' => 'Invalid JSON. Please check the format.'])
+                ->withInput();
+        }
+
+        $allowed = ['oidc', 'ldap'];
+        foreach ($decoded as $domain => $provider) {
+            if (! in_array($provider, $allowed, true)) {
+                return back()
+                    ->withErrors(['external_auth_domains' => "Unknown provider \"{$provider}\" for domain \"{$domain}\". Use \"oidc\" or \"ldap\"."])
+                    ->withInput();
+            }
+        }
+
+        Setting::current()->update(['external_auth_domains' => $decoded]);
+
+        return redirect()->route('admin.settings.index')
+            ->with('success', 'Authentication settings saved.');
+    }
+
     public function toggleModule(Request $request, string $module): RedirectResponse
     {
         $mod = Module::where('key', $module)->firstOrFail();
