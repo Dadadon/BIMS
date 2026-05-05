@@ -23,11 +23,12 @@ return new class extends Migration
             });
         }
 
+        // Backfill NULLs BEFORE changing the column to NOT NULL
+        DB::table('users')->whereNull('auth_provider')->update(['auth_provider' => 'local']);
+
         Schema::table('users', function (Blueprint $table) {
             $table->string('auth_provider')->default('local')->change();
         });
-
-        DB::table('users')->whereNull('auth_provider')->update(['auth_provider' => 'local']);
 
         // ── users: external_id column ─────────────────────────────────────────
         if (Schema::hasColumn('users', 'provider_id')) {
