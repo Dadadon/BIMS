@@ -39,13 +39,12 @@ class LdapAuthService
             $bindPw = config('ldap.bind_password');
 
             if (! @ldap_bind($conn, $bindDn, $bindPw)) {
-                // Cannot bind with service account — treat as unreachable
                 return null;
             }
 
-            $baseDn     = config('ldap.base_dn');
-            $filterTpl  = config('ldap.user_filter', '(mail=%s)');
-            $filter     = sprintf($filterTpl, ldap_escape($email, '', LDAP_ESCAPE_FILTER));
+            $baseDn    = config('ldap.base_dn');
+            $filterTpl = config('ldap.user_filter', '(mail=%s)');
+            $filter    = sprintf($filterTpl, ldap_escape($email, '', LDAP_ESCAPE_FILTER));
 
             $search = @ldap_search($conn, $baseDn, $filter, ['dn', 'cn', 'mail', 'memberof']);
             if (! $search) {
@@ -54,14 +53,13 @@ class LdapAuthService
 
             $entries = ldap_get_entries($conn, $search);
             if ($entries['count'] === 0) {
-                return false; // User does not exist in directory
+                return false;
             }
 
             $userDn   = $entries[0]['dn'];
             $userName = $entries[0]['cn'][0] ?? $email;
             $groups   = $this->extractGroups($entries[0]['memberof'] ?? []);
 
-            // Re-bind as the end user to verify their password
             if (! @ldap_bind($conn, $userDn, $password)) {
                 return false;
             }
