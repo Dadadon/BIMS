@@ -7,16 +7,20 @@ use App\Models\User;
 
 class JitProvisioningService
 {
+    public function __construct(
+        private readonly DirectorySyncService $directorySync,
+    ) {}
+
     /**
-     * Find an existing user or create one from external auth attributes.
+     * Find an existing user or create one from external auth attributes,
+     * then run DirectorySyncService to align team/department metadata.
      *
-     * @param  array{name:string,email:string,provider:string,provider_id:string,groups:array}  $attrs
+     * @param  array{name:string,email:string,auth_provider:string,external_id:string,groups:array,department?:string|null,title?:string|null}  $attrs
      */
     public function findOrProvision(array $attrs): User
     {
-        // Prefer matching on provider+provider_id; fall back to email
-        $user = User::where('provider', $attrs['provider'])
-                    ->where('provider_id', $attrs['provider_id'])
+        $user = User::where('auth_provider', $attrs['auth_provider'])
+                    ->where('external_id', $attrs['external_id'])
                     ->first()
             ?? User::where('email', $attrs['email'])->first();
 
@@ -26,9 +30,9 @@ class JitProvisioningService
             }
 
             $sync = [
-                'provider'    => $attrs['provider'],
-                'provider_id' => $attrs['provider_id'],
-                'name'        => $attrs['name'],
+                'auth_provider' => $attrs['auth_provider'],
+                'external_id'   => $attrs['external_id'],
+                'name'          => $attrs['name'],
             ];
 
             // Re-sync role from directory groups on every login when groups are present
@@ -40,26 +44,32 @@ class JitProvisioningService
 
             $user->fill($sync)->save();
 
+            $this->directorySync->sync($user, $attrs);
+
             return $user;
         }
 
         // JIT: provision a new local user record
         $role = $this->mapGroupsToRole($attrs['groups'] ?? []);
 
-        return User::create([
-            'name'        => $attrs['name'],
-            'email'       => $attrs['email'],
-            'provider'    => $attrs['provider'],
-            'provider_id' => $attrs['provider_id'],
-            'role_id'     => $role->id,
-            'acc_type'    => $role->is_admin ? 'admin' : 'employee',
-            'status'      => true,
+        $user = User::create([
+            'name'          => $attrs['name'],
+            'email'         => $attrs['email'],
+            'auth_provider' => $attrs['auth_provider'],
+            'external_id'   => $attrs['external_id'],
+            'role_id'       => $role->id,
+            'acc_type'      => $role->is_admin ? 'admin' : 'employee',
+            'status'        => true,
         ]);
+
+        $this->directorySync->sync($user, $attrs);
+
+        return $user;
     }
 
     /**
      * Map external group names to a BIMS role slug.
-     * Reads LDAP_ROLE_MAPPING env JSON, e.g. {"Domain Admins":"system_admin","IT Staff":"manager"}
+     * Reads LDAP_ROLE_MAPPING env JSON, e.g. {"Domain Admins":"system_admin"}
      * Falls back to the 'employee' role.
      */
     private function mapGroupsToRole(array $groups): Role

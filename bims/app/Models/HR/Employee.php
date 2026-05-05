@@ -10,6 +10,7 @@ use App\Models\Performance\KpiDefinition;
 use App\Models\Performance\KpiSnapshot;
 use App\Models\Sales\Sale;
 use App\Models\User;
+use App\Casts\EncryptedPii;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -45,6 +46,8 @@ class Employee extends Model
         'is_salaried'         => 'boolean',
         'base_rate'           => 'decimal:2',
         'metadata'            => 'array',
+        'national_id'         => EncryptedPii::class,
+        'sip_password'        => EncryptedPii::class,
     ];
 
     // ── Relationships ────────────────────────────────────────────

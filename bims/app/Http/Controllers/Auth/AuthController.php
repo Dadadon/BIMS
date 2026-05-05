@@ -58,8 +58,8 @@ class AuthController extends Controller
             if (is_array($result)) {
                 $user = app(JitProvisioningService::class)->findOrProvision(
                     array_merge($result, [
-                        'provider'    => 'ldap',
-                        'provider_id' => $result['dn'],
+                        'auth_provider' => 'ldap',
+                        'external_id'   => $result['dn'],
                     ])
                 );
 

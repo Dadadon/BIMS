@@ -15,8 +15,8 @@ class User extends Authenticatable implements MustVerifyEmail
     use HasFactory, Notifiable, SoftDeletes;
 
     protected $fillable = [
-        'role_id', 'employee_id', 'name', 'email',
-        'password', 'provider', 'provider_id', 'acc_type', 'status',
+        'role_id', 'employee_id', 'team_id', 'name', 'email',
+        'password', 'auth_provider', 'external_id', 'acc_type', 'status',
     ];
 
     protected $hidden = ['password', 'remember_token'];
@@ -66,9 +66,18 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->role?->slug === 'system_admin';
     }
 
-    /** The team_id this user is scoped to, or null if they see all. */
+    public function team(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(\App\Models\HR\Team::class);
+    }
+
+    /**
+     * The team_id this user is scoped to, or null if they see everything.
+     * Reads users.team_id (synced cache) first; falls back to the employee
+     * relationship for accounts not yet synced via DirectorySyncService.
+     */
     public function scopedTeamId(): ?int
     {
-        return $this->employee?->team_id;
+        return $this->team_id ?? $this->employee?->team_id;
     }
 }

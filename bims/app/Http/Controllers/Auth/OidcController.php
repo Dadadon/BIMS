@@ -52,11 +52,13 @@ class OidcController extends Controller
         $groups = $raw['groups'] ?? [];
 
         $user = $jit->findOrProvision([
-            'name'        => $socialUser->getName() ?? $email,
-            'email'       => $email,
-            'provider'    => 'azure',
-            'provider_id' => $socialUser->getId(),
-            'groups'      => $groups,
+            'name'          => $socialUser->getName() ?? $email,
+            'email'         => $email,
+            'auth_provider' => 'azure',
+            'external_id'   => $socialUser->getId(),
+            'groups'        => $groups,
+            'department'    => $raw['department'] ?? null,
+            'title'         => $raw['jobTitle'] ?? null,
         ]);
 
         Auth::login($user, true);

@@ -46,7 +46,11 @@ class LdapAuthService
             $filterTpl = config('ldap.user_filter', '(mail=%s)');
             $filter    = sprintf($filterTpl, ldap_escape($email, '', LDAP_ESCAPE_FILTER));
 
-            $search = @ldap_search($conn, $baseDn, $filter, ['dn', 'cn', 'mail', 'memberof']);
+            $search = @ldap_search(
+                $conn, $baseDn, $filter,
+                ['dn', 'cn', 'displayname', 'mail', 'memberof', 'department', 'title']
+            );
+
             if (! $search) {
                 return null;
             }
@@ -56,9 +60,10 @@ class LdapAuthService
                 return false;
             }
 
-            $userDn   = $entries[0]['dn'];
-            $userName = $entries[0]['cn'][0] ?? $email;
-            $groups   = $this->extractGroups($entries[0]['memberof'] ?? []);
+            $entry    = $entries[0];
+            $userDn   = $entry['dn'];
+            $userName = $entry['displayname'][0] ?? $entry['cn'][0] ?? $email;
+            $groups   = $this->extractGroups($entry['memberof'] ?? []);
 
             if (! @ldap_bind($conn, $userDn, $password)) {
                 return false;
@@ -67,10 +72,12 @@ class LdapAuthService
             @ldap_close($conn);
 
             return [
-                'name'   => $userName,
-                'email'  => $email,
-                'dn'     => $userDn,
-                'groups' => $groups,
+                'name'       => $userName,
+                'email'      => $email,
+                'dn'         => $userDn,
+                'groups'     => $groups,
+                'department' => $entry['department'][0] ?? null,
+                'title'      => $entry['title'][0] ?? null,
             ];
         } catch (\Throwable) {
             return null;
